@@ -25,7 +25,8 @@ pub mod lexer {
     "(" => SYMBOL::A_OPEN_PARAN,
     ")" => SYMBOL::A_CLOSE_PARAN,
     "prt" => SYMBOL::A_PRINT_FN,
-    "end" => SYMBOL::A_STAT_END
+    "end" => SYMBOL::A_STAT_END,
+    "str" => SYMBOL::A_TYP
     };
 
     pub struct Lexer {
@@ -33,7 +34,7 @@ pub mod lexer {
         pos: usize,
     }
 
-    fn is_letter(char: &str) -> bool {
+    pub fn is_letter(char: &str) -> bool {
         (char >= "a" && char <= "z") || (char >= "A" && char <= "Z") || (char == "_")
     }
     fn is_digit(char: &str) -> bool {
@@ -83,6 +84,10 @@ pub mod lexer {
                         });
                         self.seek_and_consume();
                     }
+                    "\"" => {
+                        self.seek_and_consume();
+                        token.push(self.read_str());
+                    }
                     s if is_letter(s) => {
                         println!("Start At {}", s);
                         // break;
@@ -126,10 +131,25 @@ pub mod lexer {
                 let curr_char = self.seek_and_consume();
                 val.push_str(&curr_char);
             }
+            // skipping over the ending double quotes
+            self.seek_and_consume();
             return LexToken {
                 symbol: SYMBOL::A_VAL,
                 val,
             };
+        }
+
+        fn read_str(&mut self) -> LexToken {
+            let mut string = String::new();
+            while self.seek() != "\"" {
+                println!("CURR STR: {}", self.seek());
+                string.push_str(&self.seek_and_consume());
+            }
+            self.seek_and_consume();
+            LexToken {
+                symbol: SYMBOL::A_VAL,
+                val: string,
+            }
         }
 
         pub fn seek_and_consume(&mut self) -> String {
@@ -137,7 +157,7 @@ pub mod lexer {
                 return "end".to_string();
             };
             let char = &self.input[self.pos..self.pos + 1];
-            self.pos += 1;
+            self.pos += char.len();
             String::from(char)
         }
         pub fn seek(&mut self) -> String {

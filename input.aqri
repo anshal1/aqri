@@ -1,2 +1,3 @@
 let x int = 100
 prt(x)
+let z str = "test"

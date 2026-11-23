@@ -4,7 +4,7 @@ use std::{
     io::{BufRead, BufReader},
 };
 
-use crate::lexer::lexer::LexToken;
+use crate::lexer::lexer::{LexToken, is_letter};
 
 fn main() {
     let file = File::open("./input.aqri").unwrap();
