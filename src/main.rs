@@ -22,5 +22,6 @@ fn main() {
         val: "EOF".to_string(),
     });
     let mut parser = parser::parser::Parser::new(lex_tokens);
-    parser.parse();
+    let ast = parser.parse();
+    println!("{:?}", ast);
 }

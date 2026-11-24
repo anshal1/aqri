@@ -86,7 +86,6 @@ pub mod lexer {
                         self.seek_and_consume();
                     }
                     "\"" => {
-                        self.seek_and_consume();
                         token.push(self.read_str());
                     }
                     s if is_letter(s) => {
@@ -96,6 +95,7 @@ pub mod lexer {
                         token.push(self.read_num());
                     }
                     _ => {
+                        // even if the token is unkown read it, throwing an error fot this is the part of the parser
                         token.push(self.read_idn());
                     }
                 }
@@ -139,9 +139,13 @@ pub mod lexer {
 
         fn read_str(&mut self) -> LexToken {
             let mut string = String::new();
+            // push the starting quote into the string as consume it so the loop below can run without failing
+            string.push_str(self.seek_and_consume().as_str());
             while self.seek() != "\"" {
                 string.push_str(&self.seek_and_consume());
             }
+            string.push_str("\"");
+            // consume the ending quote
             self.seek_and_consume();
             LexToken {
                 symbol: SYMBOL::A_VAL,
