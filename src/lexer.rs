@@ -1,6 +1,6 @@
 pub mod lexer {
     use phf::phf_map;
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub enum SYMBOL {
         A_LET,
         A_IDEN,
@@ -11,11 +11,12 @@ pub mod lexer {
         A_CLOSE_PARAN,
         A_STAT_END,
         A_PRINT_FN,
+        A_EOF,
     }
     #[derive(Clone, Debug)]
     pub struct LexToken {
-        symbol: SYMBOL,
-        val: String,
+        pub symbol: SYMBOL,
+        pub val: String,
     }
 
     static SYMBOL_MAP: phf::Map<&str, SYMBOL> = phf_map! {
@@ -89,15 +90,13 @@ pub mod lexer {
                         token.push(self.read_str());
                     }
                     s if is_letter(s) => {
-                        println!("Start At {}", s);
-                        // break;
                         token.push(self.read_idn());
                     }
                     s if is_digit(s) => {
                         token.push(self.read_num());
                     }
                     _ => {
-                        panic!("Unkown token: {}", curr_char);
+                        token.push(self.read_idn());
                     }
                 }
             }
@@ -107,7 +106,6 @@ pub mod lexer {
             let mut idn = String::new();
             while self.seek() != " " && is_letter(&self.seek()) {
                 let curr_char = self.seek_and_consume();
-                println!("CHAR: {}", curr_char);
                 idn.push_str(&curr_char);
             }
             let symbol = SYMBOL_MAP.get(&idn).cloned();
@@ -142,7 +140,6 @@ pub mod lexer {
         fn read_str(&mut self) -> LexToken {
             let mut string = String::new();
             while self.seek() != "\"" {
-                println!("CURR STR: {}", self.seek());
                 string.push_str(&self.seek_and_consume());
             }
             self.seek_and_consume();
